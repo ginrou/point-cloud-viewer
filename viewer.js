@@ -8,7 +8,11 @@ var main = function(){
     var near   = 1;
     var far    = 1000;
     var camera = new THREE.PerspectiveCamera( fov, aspect, near, far );
-    camera.position.set( 0, 0, 50 );
+    camera.position.set( 0, 0, 5 );
+    camera.lookAt(new THREE.Vector3(0,0,0));
+
+    var axis = new THREE.AxisHelper(100);
+    scene.add(axis);
 
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
@@ -18,18 +22,47 @@ var main = function(){
     directionalLight.position.set(0, 0.7, 0.7 );
     scene.add(directionalLight);
 
-    var geometry = new THREE.CubeGeometry(30, 30, 30);
-    var material = new THREE.MeshPhongMaterial({color:0xff0000});
-    var mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+    var sphere = new THREE.Mesh(
+	new THREE.TorusKnotGeometry(0.6, 0.2, 128, 32, 2, 3),
+	new THREE.MeshPhongMaterial({color:0xff0000})
+    );
+    scene.add(sphere);
+
+
+    var circleGeometry = new THREE.CircleGeometry(2, 128);
+    circleGeometry.vertices.shift();
+    var circleMaeterial = new THREE.LineBasicMaterial({color:0x00ff00});
+    var xCircle = new THREE.Line(circleGeometry, circleMaeterial);
+    scene.add(xCircle);
+
+    var yCircle = new THREE.Line(circleGeometry, circleMaeterial);
+    yCircle.rotation.set( Math.Pi/2.0, 0, 0);
+    scene.add(yCircle);
+
 
     renderer.render(scene, camera);
 
-    (function renderLoop(){
-	requestAnimationFrame(renderLoop);
-	mesh.rotation.set(0, mesh.rotation.y + 0.01, mesh.rotation.x + 0.01);
-	renderer.render(scene, camera);	
-    })();
+    // mouse rotation
+    var mousedown = false;
+    var prevPoint;
+    renderer.domElement.addEventListener('mousedown', function(e){
+	mousedown = true;
+	prevPoint = {x:e.x, y:e.y};
+    }, false);
+
+    renderer.domElement.addEventListener('mousemove', function(e){
+	if(!mousedown) return;
+
+	var distance = {x: prevPoint.x - e.x, y: prevPoint.y-e.y};
+	sphere.rotation.x -= distance.y * 0.01;
+	sphere.rotation.y -= distance.x * 0.01;
+	prevPoint = {x:e.x, y:e.y};
+	renderer.render(scene, camera);
+    }, false);
+
+    renderer.domElement.addEventListener('mouseup', function(e){
+	mousedown = false;
+    }, false);
 
 };
 
