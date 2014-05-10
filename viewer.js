@@ -6,12 +6,7 @@
     var renderer;
     var particleSystem;
 
-
-    var addParticle = function(pt) {
-	particleSystem.geometry.vertices.push(pt);
-    }
-
-    var init = function() {
+    var initGraphics = function() {
 
 	scene = new THREE.Scene();
 
@@ -34,37 +29,82 @@
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
-	document.body.appendChild(renderer.domElement);
+	$("#renderArea").append(renderer.domElement);
 
 	var directionalLight = new THREE.DirectionalLight(0xffffff);
 	directionalLight.position.set(0, 0.7, 0.7 );
 	scene.add(directionalLight);
 
+    }
+
+    var reRenderParticleSystem = function(points) {
+	if(particleSystem) {
+	    scene.remove(particleSystem);
+	}
+
 	particleSystem = new THREE.ParticleSystem(
 	    new THREE.Geometry(),
 	    new THREE.ParticleBasicMaterial({color:0xFF0000})
 	);
-	scene.add(particleSystem);
 
-	for ( var i = 0; i < 200; ++i ) {
-	    addParticle(new THREE.Vector3(
-		Math.random() * 20 - 10,
-		Math.random() * 20 - 10,
-		Math.random() * 20 - 10
-	    ));
+	for(var i = 0; i < points.length; ++i ) {
+	    particleSystem.geometry.vertices.push(points[i]);
 	}
-
+	scene.add(particleSystem);
     }
 
     var mainLoop = function() {
-	requestAnimationFrame(mainLoop);
 	controls.update();
 	renderer.clear();
 	renderer.render(scene, camera);
+	requestAnimationFrame(mainLoop);
     }
 
+    var handleDragOver = function(event){
+	event.stopPropagation();
+	event.preventDefault();
+	event.dataTransfer.dropEffect = 'copy';
+    };
+
+    var handleFileSelect = function(event){
+	event.stopPropagation();
+	event.preventDefault();
+	var files = event.dataTransfer.files;
+
+	var outpus = [];
+	for( var i = 0, f; f = files[i]; ++i ) {
+
+	    // output file name
+	    var elem = $("<ul>");
+	    elem.append( $("<li>name : "+f.name+"</li>") );
+	    elem.append( $("<li>size : "+f.size+" bytes</li>") );
+	    elem.append( $("<li>lastMotified :"+f.lastModifiedDate.toLocaleDateString()+"</li>") );
+	    $("#fileList").append(elem);
+
+	    var reader = new FileReader();
+	    reader.onload = function(loadEvent){
+
+		var lines = loadEvent.target.result.split("\n");
+		var points = new Array();
+		for( var i = 0; i < lines.length; ++i ){
+		    v = lines[i].split(",")
+		    points.push(new THREE.Vector3(v[0], v[1], v[2]));
+		}
+		reRenderParticleSystem(points);
+	    }
+	    reader.readAsText(f);
+	}
+    };
+
+    var initFileLoader = function(){
+	var dropArea = document.getElementById("dropArea");
+	dropArea.addEventListener('dragover', handleDragOver, false);
+	dropArea.addEventListener('drop', handleFileSelect, false);
+    };
+
     var main = function(){
-	init();
+	initGraphics();
+	initFileLoader();
 	mainLoop();
     };
 

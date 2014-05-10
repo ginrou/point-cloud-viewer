@@ -1,10 +1,19 @@
 <html>
 <head>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script type="text/javascript" src="three.min.js"></script>
 <script type="text/javascript" src="TrackballControls.js"></script>
 <script type="text/javascript" src="viewer.js"></script>
 </head>
 <body>
-
+<div id="renderArea" style="float:left;"></div>
+<div id="dataArea" style="width:auto;">
+  <div style="height:100px; border: 1px solid #ccc; padding: 10px">
+    <div id="dropArea" style="border: 2px dashed #bbb; padding: 25px; text-align: center;">
+      Drop your files here
+    </div>
+  </div>
+  <output id="fileList">
+</div>
 </body>
 </html>
